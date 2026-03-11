@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 
 @celery_app.task(bind=True, max_retries=3)
-def predict_order_return_risk(self, merchant_id: str, order_id: int, order_data: dict):
+async def predict_order_return_risk(self, merchant_id: str, order_id: int, order_data: dict):
     """
     Run return risk prediction for a single order.
 
@@ -54,7 +54,7 @@ def predict_order_return_risk(self, merchant_id: str, order_id: int, order_data:
 
 
 @celery_app.task
-def retrain_models():
+async def retrain_models():
     """
     Retrain ML models using the latest return data.
 
@@ -87,7 +87,7 @@ def retrain_models():
 
 
 @celery_app.task
-def sync_prediction_outcomes():
+async def sync_prediction_outcomes():
     """
     Check which predicted orders actually ended up being returned.
 
