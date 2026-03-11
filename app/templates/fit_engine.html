@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block title %}Fit Engine - ReturnShield AI{% endblock %}
+
+{% block content %}
+<div class="p-6">
+    <div class="flex justify-between items-center mb-6">
+        <div>
+            <h1 class="text-2xl font-bold text-slate-900">🛡️ Fit Engine</h1>
+            <p class="text-slate-600">Analyze return patterns and optimize your size guides with AI.</p>
+        </div>
+        <button class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+            Run Full Analysis
+        </button>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+            <h3 class="text-slate-500 text-sm font-medium uppercase mb-1">Return Prevention Rate</h3>
+            <div class="text-3xl font-bold text-slate-900">12.4%</div>
+            <p class="text-green-600 text-sm mt-2">↑ 2.1% from last month</p>
+        </div>
+        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+            <h3 class="text-slate-500 text-sm font-medium uppercase mb-1">Exchange Conversion</h3>
+            <div class="text-3xl font-bold text-slate-900">42.8%</div>
+            <p class="text-indigo-600 text-sm mt-2">Retention high stable</p>
+        </div>
+        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+            <h3 class="text-slate-500 text-sm font-medium uppercase mb-1">AI Recommendation Confidence</h3>
+            <div class="text-3xl font-bold text-slate-900">89.2%</div>
+            <div class="w-full bg-slate-100 h-2 rounded-full mt-3">
+                <div class="bg-indigo-600 h-2 rounded-full" style="width: 89%"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="p-6 border-b border-slate-200">
+            <h2 class="text-lg font-bold text-slate-900">High-Risk Products (Sizing)</h2>
+        </div>
+        <table class="w-full text-left">
+            <thead class="bg-slate-50 text-slate-600 text-sm">
+                <tr>
+                    <th class="px-6 py-4 font-semibold">Product</th>
+                    <th class="px-6 py-4 font-semibold">Return Rate</th>
+                    <th class="px-6 py-4 font-semibold">Primary Reason</th>
+                    <th class="px-6 py-4 font-semibold">AI Insight</th>
+                    <th class="px-6 py-4 font-semibold">Action</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-200">
+                <tr>
+                    <td class="px-6 py-4">
+                        <div class="font-medium text-slate-900">Premium Leather Jacket</div>
+                        <div class="text-xs text-slate-500">Outerwear · 4 Variants</div>
+                    </td>
+                    <td class="px-6 py-4">
+                        <span class="text-red-600 font-semibold">18.5%</span>
+                    </td>
+                    <td class="px-6 py-4 text-slate-600">"Too Small" (72%)</td>
+                    <td class="px-6 py-4">
+                        <span
+                            class="bg-indigo-50 text-indigo-700 text-xs px-2 py-1 rounded-full border border-indigo-100">
+                            Suggest Size Up
+                        </span>
+                    </td>
+                    <td class="px-6 py-4">
+                        <button class="text-indigo-600 hover:text-indigo-800 text-sm font-medium">Auto-Adjust</button>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="px-6 py-4">
+                        <div class="font-medium text-slate-900">Summer Linen Trousers</div>
+                        <div class="text-xs text-slate-500">Pants · 6 Variants</div>
+                    </td>
+                    <td class="px-6 py-4">
+                        <span class="text-amber-600 font-semibold">11.2%</span>
+                    </td>
+                    <td class="px-6 py-4 text-slate-600">"Too Large" (58%)</td>
+                    <td class="px-6 py-4">
+                        <span
+                            class="bg-indigo-50 text-indigo-700 text-xs px-2 py-1 rounded-full border border-indigo-100">
+                            Suggest Size Down
+                        </span>
+                    </td>
+                    <td class="px-6 py-4">
+                        <button class="text-indigo-600 hover:text-indigo-800 text-sm font-medium">Auto-Adjust</button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

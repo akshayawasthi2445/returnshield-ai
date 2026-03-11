@@ -1,0 +1,309 @@
+{% extends "portal/portal_base.html" %}
+
+{% block title %}Select Items to Return - ReturnShield AI{% endblock %}
+
+{% block extra_css %}
+<style>
+    .selection-header {
+        margin-bottom: 2rem;
+    }
+
+    .selection-title {
+        font-size: 1.75rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .order-info {
+        display: inline-block;
+        background: #f1f5f9;
+        padding: 4px 12px;
+        border-radius: 8px;
+        font-size: 0.875rem;
+        color: var(--text-muted);
+        font-weight: 600;
+        margin-bottom: 1rem;
+    }
+
+    .items-container {
+        display: flex;
+        flex-direction: column;
+        gap: 1.25rem;
+        margin-bottom: 2.5rem;
+    }
+
+    .item-card {
+        display: flex;
+        gap: 1.5rem;
+        padding: 1.25rem;
+        border-radius: 20px;
+        background: rgba(255, 255, 255, 0.5);
+        border: 1px solid var(--border);
+        transition: all 0.3s ease;
+        position: relative;
+        cursor: pointer;
+    }
+
+    .item-card:hover {
+        border-color: var(--primary);
+        background: rgba(255, 255, 255, 0.8);
+    }
+
+    .item-card.selected {
+        border-color: var(--primary);
+        background: white;
+        box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.1);
+    }
+
+    .checkbox-container {
+        position: absolute;
+        top: 1.25rem;
+        right: 1.25rem;
+    }
+
+    .custom-checkbox {
+        width: 24px;
+        height: 24px;
+        border: 2px solid var(--border);
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s ease;
+        background: white;
+    }
+
+    .item-card.selected .custom-checkbox {
+        background: var(--primary);
+        border-color: var(--primary);
+    }
+
+    .custom-checkbox svg {
+        color: white;
+        display: none;
+    }
+
+    .item-card.selected .custom-checkbox svg {
+        display: block;
+    }
+
+    .item-image {
+        width: 100px;
+        height: 100px;
+        border-radius: 12px;
+        object-fit: cover;
+        flex-shrink: 0;
+        border: 1px solid #eee;
+    }
+
+    .item-details {
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    .item-title {
+        font-size: 1.125rem;
+        font-weight: 600;
+        margin-bottom: 4px;
+    }
+
+    .item-variant {
+        font-size: 0.875rem;
+        color: var(--text-muted);
+        margin-bottom: 8px;
+    }
+
+    .item-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .item-price {
+        font-weight: 700;
+        color: var(--primary);
+    }
+
+    /* Options that appear when item is selected */
+    .item-options {
+        display: none;
+        margin-top: 1.25rem;
+        padding-top: 1.25rem;
+        border-top: 1px solid var(--border);
+        width: 100%;
+    }
+
+    .item-card.selected .item-options {
+        display: block;
+    }
+
+    .option-group {
+        margin-bottom: 1rem;
+    }
+
+    .option-label {
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: var(--text-muted);
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+
+    .select-input {
+        width: 100%;
+        padding: 0.75rem;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        background: #f8fafc;
+        font-family: 'Inter', sans-serif;
+        font-size: 0.875rem;
+    }
+
+    .wizard-footer {
+        position: sticky;
+        bottom: 0;
+        background: white;
+        padding: 1.5rem 0;
+        margin-top: 2rem;
+        border-top: 1px solid var(--border);
+        margin-left: -2.5rem;
+        margin-right: -2.5rem;
+        padding-left: 2.5rem;
+        padding-right: 2.5rem;
+        border-bottom-left-radius: 24px;
+        border-bottom-right-radius: 24px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .btn-next {
+        padding: 0.875rem 2rem;
+        background: var(--primary);
+        color: white;
+        border-radius: 12px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        opacity: 0.5;
+        pointer-events: none;
+    }
+
+    .btn-next.active {
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    .btn-next:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.3);
+    }
+
+    @media (max-width: 600px) {
+        .item-card {
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .item-image {
+            width: 100%;
+            height: 200px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="selection-header">
+    <span class="order-info">Order {{ order_name }}</span>
+    <h1 class="selection-title">What would you like to return?</h1>
+    <p class="lookup-subtitle">Select the items and tell us why. Our AI will handle the rest.</p>
+</div>
+
+<div class="items-container">
+    {% for item in items %}
+    <div class="item-card" onclick="toggleItem(this, {{ item.id }})">
+        <div class="checkbox-container">
+            <div class="custom-checkbox">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+            </div>
+        </div>
+
+        <img src="{{ item.image_url }}" alt="{{ item.product_title }}" class="item-image">
+
+        <div class="item-details">
+            <h3 class="item-title">{{ item.product_title }}</h3>
+            <p class="item-variant">{{ item.variant_title }}</p>
+            <div class="item-footer">
+                <span class="item-price">${{ "%.2f"|format(item.price) }}</span>
+            </div>
+
+            <div class="item-options" onclick="event.stopPropagation()">
+                <div class="option-group">
+                    <label class="option-label">Reason for return</label>
+                    <select class="select-input">
+                        <option value="">Select a reason...</option>
+                        <option value="too_small">Too small / Tight</option>
+                        <option value="too_large">Too large / Loose</option>
+                        <option value="defective">Defective / Damaged</option>
+                        <option value="different_from_photos">Different from photos</option>
+                        <option value="changed_mind">Changed my mind</option>
+                    </select>
+                </div>
+
+                <div class="option-group">
+                    <label class="option-label">Preferred Resolution</label>
+                    <select class="select-input">
+                        <option value="refund">Refund to original payment</option>
+                        <option value="credit">Store Credit (+10% Bonus)</option>
+                        <option value="exchange">Exchange for different size</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<div class="wizard-footer">
+    <div class="selection-summary">
+        <span id="selected-count">0</span> items selected
+    </div>
+    <a href="/portal/{{ shop_domain }}/success/bef18dbf-e580-4358-8636-4ebc8bf0ad0d" id="btn-next"
+        class="btn-next">Continue</a>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    let selectedItems = new Set();
+
+    function toggleItem(element, id) {
+        if (selectedItems.has(id)) {
+            selectedItems.delete(id);
+            element.classList.remove('selected');
+        } else {
+            selectedItems.add(id);
+            element.classList.add('selected');
+        }
+        updateFooter();
+    }
+
+    function updateFooter() {
+        const count = selectedItems.size;
+        document.getElementById('selected-count').innerText = count;
+
+        const btn = document.getElementById('btn-next');
+        if (count > 0) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    }
+</script>
+{% endblock %}

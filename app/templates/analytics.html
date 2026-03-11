@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Analytics</h1>
+    <p>Data-driven insights into your return patterns and revenue retention.</p>
+</div>
+
+<!-- Main Trends Card -->
+<div class="card">
+    <div class="card-header">
+        <h2>Return Trends</h2>
+        <select id="trend-period" class="btn btn-secondary" onchange="loadTrends()">
+            <option value="30">Last 30 days</option>
+            <option value="90">Last 90 days</option>
+            <option value="180">Last 6 months</option>
+            <option value="365">Last year</option>
+        </select>
+    </div>
+    <div style="height: 300px; padding: 10px;">
+        <canvas id="analyticsTrendsChart"></canvas>
+    </div>
+</div>
+
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 24px;">
+    <!-- Return Reasons Breakdown -->
+    <div class="card">
+        <div class="card-header">
+            <h2>Return Reasons</h2>
+        </div>
+        <div style="height: 300px; padding: 10px;">
+            <canvas id="reasonsBreakdownChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Top Products -->
+    <div class="card">
+        <div class="card-header">
+            <h2>High-Return Products</h2>
+        </div>
+        <div id="top-products-list" style="padding: 10px;">
+            <p class="empty-state">Loading product insights...</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    let trendsChart;
+    let reasonsChart;
+
+    async function loadTrends() {
+        const days = document.getElementById('trend-period').value;
+        try {
+            const data = await apiCall(`/analytics/trends?days=${days}`);
+            const ctx = document.getElementById('analyticsTrendsChart').getContext('2d');
+
+            if (trendsChart) trendsChart.destroy();
+
+            trendsChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: data.trends.map(t => t.date),
+                    datasets: [{
+                        label: 'Total Returns',
+                        data: data.trends.map(t => t.count),
+                        backgroundColor: '#202123',
+                        borderRadius: 4,
+                        maxBarThickness: 40
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: '#f1f1f1' } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+        } catch (err) {
+            console.error('Trends analytics error:', err);
+        }
+    }
+
+    async function loadReasons() {
+        try {
+            const data = await apiCall('/analytics/reasons');
+            const ctx = document.getElementById('reasonsBreakdownChart').getContext('2d');
+
+            if (reasonsChart) reasonsChart.destroy();
+
+            reasonsChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: data.reasons.map(r => r.reason.replace(/_/g, ' ')),
+                    datasets: [{
+                        data: data.reasons.map(r => r.count),
+                        backgroundColor: ['#202123', '#43464a', '#70757a', '#a0a5aa', '#d1d4d7'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'right', labels: { boxWidth: 12, font: { size: 12 } } }
+                    },
+                    cutout: '65%'
+                }
+            });
+        } catch (err) {
+            console.error('Reasons analytics error:', err);
+        }
+    }
+
+    async function loadProducts() {
+        try {
+            const data = await apiCall('/analytics/products?limit=8');
+            const container = document.getElementById('top-products-list');
+
+            if (data.products.length === 0) {
+                container.innerHTML = '<div class="empty-state"><p>No product return data available yet.</p></div>';
+                return;
+            }
+
+            container.innerHTML = data.products.map((p, i) => `
+                <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; border-bottom: 1px solid #f1f1f1;">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <span style="font-size: 13px; font-weight: 600; color: #666; width: 20px;">${i + 1}</span>
+                        <span style="font-size: 14px; color: #1a1a1a;">${p.product_title}</span>
+                    </div>
+                    <span class="badge badge-high-risk">${p.return_count} returns</span>
+                </div>
+            `).join('');
+        } catch (err) {
+            console.error('Products analytics error:', err);
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        loadTrends();
+        loadReasons();
+        loadProducts();
+    });
+</script>
+{% endblock %}

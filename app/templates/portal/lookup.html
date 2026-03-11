@@ -1,0 +1,203 @@
+{% extends "portal/portal_base.html" %}
+
+{% block title %}Find My Order - ReturnShield AI{% endblock %}
+
+{% block extra_css %}
+<style>
+    .lookup-header {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+
+    .lookup-title {
+        font-size: 2rem;
+        color: var(--text-main);
+        margin-bottom: 0.5rem;
+    }
+
+    .lookup-subtitle {
+        color: var(--text-muted);
+        font-size: 1rem;
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-label {
+        display: block;
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: var(--text-main);
+        margin-bottom: 0.5rem;
+    }
+
+    .form-input {
+        width: 100%;
+        padding: 0.875rem 1rem;
+        border-radius: 12px;
+        border: 1px solid var(--border);
+        background: var(--white);
+        font-size: 1rem;
+        transition: all 0.2s ease;
+        font-family: 'Inter', sans-serif;
+    }
+
+    .form-input:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+    }
+
+    .help-text {
+        font-size: 0.75rem;
+        color: var(--text-muted);
+        margin-top: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+
+    .btn-submit {
+        width: 100%;
+        padding: 1rem;
+        background: var(--primary);
+        color: white;
+        border: none;
+        border-radius: 12px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin-top: 1rem;
+    }
+
+    .btn-submit:hover {
+        background: var(--primary-dark);
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px -5px rgba(99, 102, 241, 0.4);
+    }
+
+    .trust-footer {
+        margin-top: 2.5rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--border);
+        display: flex;
+        justify-content: center;
+        gap: 2rem;
+    }
+
+    .trust-badge {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.75rem;
+        color: var(--text-muted);
+    }
+
+    .trust-badge svg {
+        width: 16px;
+        height: 16px;
+        color: #10b981;
+    }
+
+    /* Loading state overlay (hidden by default) */
+    .loading-overlay {
+        display: none;
+        position: absolute;
+        inset: 0;
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(4px);
+        border-radius: 24px;
+        justify-content: center;
+        align-items: center;
+        z-index: 20;
+    }
+
+    .spinner {
+        width: 40px;
+        height: 40px;
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid var(--primary);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        0% {
+            transform: rotate(0deg);
+        }
+
+        100% {
+            transform: rotate(360deg);
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div id="loading" class="loading-overlay">
+    <div class="spinner"></div>
+</div>
+
+<div class="lookup-header">
+    <h1 class="lookup-title">Returns Center</h1>
+    <p class="lookup-subtitle">Enter your details to manage your return or exchange.</p>
+</div>
+
+<form id="lookup-form" action="#" method="POST">
+    <div class="form-group">
+        <label class="form-label" for="order_number">Order Number</label>
+        <input type="text" id="order_number" name="order_number" class="form-input" placeholder="e.g. #1234" required>
+        <p class="help-text">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="16" x2="12" y2="12"></line>
+                <line x1="12" y1="8" x2="12.01" y2="8"></line>
+            </svg>
+            Found in your order confirmation email.
+        </p>
+    </div>
+
+    <div class="form-group">
+        <label class="form-label" for="email">Email Address</label>
+        <input type="email" id="email" name="email" class="form-input" placeholder="you@example.com" required>
+    </div>
+
+    <button type="submit" class="btn-submit">Find My Order</button>
+</form>
+
+<div class="trust-footer">
+    <div class="trust-badge">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"
+            stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+        Secure Authentication
+    </div>
+    <div class="trust-badge">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"
+            stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+        AI-Powered Support
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.getElementById('lookup-form').addEventListener('submit', function (e) {
+        e.preventDefault();
+        const loading = document.getElementById('loading');
+        loading.style.display = 'flex';
+
+        // Simulate API call for now
+        setTimeout(() => {
+            alert('Order lookup functionality will be connected to the API in the next phase.');
+            loading.style.display = 'none';
+        }, 1500);
+    });
+</script>
+{% endblock %}

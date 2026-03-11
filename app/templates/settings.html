@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="page-header">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+            <h1>Settings</h1>
+            <p>Configure ReturnShield AI for your store's specific brand and policy requirements.</p>
+        </div>
+        <button class="btn btn-primary" onclick="saveSettings()">Save Changes</button>
+    </div>
+</div>
+
+<div style="display: grid; grid-template-columns: 1fr 2fr; gap: 24px;">
+    <!-- Sidebar / Info -->
+    <div>
+        <div class="card">
+            <div class="card-header">
+                <h2>Store Status</h2>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+                <div>
+                    <div style="font-size: 12px; color: #666; margin-bottom: 2px;">Domain</div>
+                    <div id="store-domain" style="font-weight: 600;">{{ shop }}</div>
+                </div>
+                <div>
+                    <div style="font-size: 12px; color: #666; margin-bottom: 2px;">Plan</div>
+                    <span class="badge badge-approved">Pro Plan</span>
+                </div>
+                <div>
+                    <div style="font-size: 12px; color: #666; margin-bottom: 2px;">AI Engine</div>
+                    <span class="badge badge-exchanged">Active</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Settings Form -->
+    <div style="display: flex; flex-direction: column; gap: 24px;">
+        <!-- Policy -->
+        <div class="card">
+            <div class="card-header">
+                <h2>Return Policy</h2>
+            </div>
+            <div style="display: grid; gap: 20px;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                    <div>
+                        <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 8px;">Return
+                            Window (days)</label>
+                        <input type="number" id="return-window" value="30" class="btn btn-secondary"
+                            style="width: 100%; text-align: left; background: #fff;">
+                    </div>
+                    <div>
+                        <label
+                            style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 8px;">Auto-approve
+                            Below ($)</label>
+                        <input type="number" id="auto-approve-threshold" value="50" class="btn btn-secondary"
+                            style="width: 100%; text-align: left; background: #fff;">
+                    </div>
+                </div>
+
+                <label style="display: flex; align-items: flex-start; gap: 12px; cursor: pointer;">
+                    <input type="checkbox" id="exchange-first" checked
+                        style="margin-top: 4px; width: 18px; height: 18px; accent-color: #1a1a1a;">
+                    <div>
+                        <div style="font-size: 14px; font-weight: 600;">Suggest exchanges first</div>
+                        <div style="font-size: 13px; color: #666;">Reduce refunds by offering store credit or size
+                            exchanges automatically.</div>
+                    </div>
+                </label>
+            </div>
+        </div>
+
+        <!-- AI Engine -->
+        <div class="card">
+            <div class="card-header">
+                <h2>AI & Automation</h2>
+            </div>
+            <div style="display: grid; gap: 20px;">
+                <div>
+                    <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 12px;">Risk
+                        Sensitivity Threshold</label>
+                    <input type="range" id="risk-threshold" min="0" max="100" value="70"
+                        style="width: 100%; accent-color: #1a1a1a;"
+                        oninput="document.getElementById('risk-display').textContent = this.value + '%'">
+                    <div style="display: flex; justify-content: space-between; margin-top: 8px;">
+                        <span style="font-size: 12px; color: #666;">Conservative</span>
+                        <span style="font-size: 13px; font-weight: 700;" id="risk-display">70%</span>
+                        <span style="font-size: 12px; color: #666;">Aggressive</span>
+                    </div>
+                </div>
+
+                <label style="display: flex; align-items: flex-start; gap: 12px; cursor: pointer;">
+                    <input type="checkbox" id="risk-tagging" checked
+                        style="margin-top: 4px; width: 18px; height: 18px; accent-color: #1a1a1a;">
+                    <div>
+                        <div style="font-size: 14px; font-weight: 600;">Auto-tag High Risk Orders</div>
+                        <div style="font-size: 13px; color: #666;">Tag orders in Shopify admin that exceed the
+                            sensitivity threshold.</div>
+                    </div>
+                </label>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    async function saveSettings() {
+        const settings = {
+            return_window_days: parseInt(document.getElementById('return-window').value),
+            auto_approve_threshold: parseFloat(document.getElementById('auto-approve-threshold').value),
+            exchange_first: document.getElementById('exchange-first').checked,
+            risk_tagging: document.getElementById('risk-tagging').checked,
+            risk_threshold: parseInt(document.getElementById('risk-threshold').value) / 100,
+        };
+
+        try {
+            // Mocking the save for now
+            console.log('Saving settings:', settings);
+            shopify.toast.show('Settings saved successfully');
+        } catch (err) {
+            shopify.toast.show('Failed to save settings', { isError: true });
+        }
+    }
+</script>
+{% endblock %}

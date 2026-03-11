@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="page-header">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+            <h1>Returns Management</h1>
+            <p>Review, approve, and process customer return requests.</p>
+        </div>
+        <div style="display: flex; gap: 8px;">
+            <button class="btn btn-secondary">Export CSV</button>
+            <button class="btn btn-primary">Process Batch</button>
+        </div>
+    </div>
+</div>
+
+<!-- Filters Bar -->
+<div class="card" style="padding: 12px 20px;">
+    <div style="display: flex; gap: 16px; align-items: center;">
+        <input type="text" placeholder="Search orders, customers..." class="btn btn-secondary"
+            style="flex: 1; text-align: left; cursor: text;">
+        <select class="btn btn-secondary">
+            <option>All Statuses</option>
+            <option>Pending</option>
+            <option>Approved</option>
+            <option>Completed</option>
+        </select>
+        <select class="btn btn-secondary">
+            <option>All Risk Levels</option>
+            <option>High Risk</option>
+            <option>Medium Risk</option>
+            <option>Low Risk</option>
+        </select>
+    </div>
+</div>
+
+<!-- Returns Table -->
+<div class="card">
+    <table class="data-table" id="returns-list-table">
+        <thead>
+            <tr>
+                <th>Order</th>
+                <th>Customer</th>
+                <th>Items</th>
+                <th>Reason</th>
+                <th>AI Risk</th>
+                <th>Status</th>
+                <th>Date</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody id="returns-list-body">
+            <tr>
+                <td colspan="8" class="empty-state">
+                    <h3>Loading returns...</h3>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div style="padding: 16px; border-top: 1px solid #f1f1f1; display: flex; justify-content: center; gap: 8px;"
+        id="pagination">
+        <!-- Pagination would go here -->
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    async function loadReturns() {
+        const tbody = document.getElementById('returns-list-body');
+        try {
+            const data = await apiCall('/returns?page_size=20');
+
+            if (!data.returns || data.returns.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="8" class="empty-state">
+                            <h3>No return requests found</h3>
+                            <p>Requests will appear here after customers initiate them via the portal.</p>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = data.returns.map(r => `
+                <tr id="return-row-${r.id}">
+                    <td><strong>${r.shopify_order_name || '#' + r.shopify_order_id}</strong></td>
+                    <td>
+                        <div style="font-weight: 500;">${r.customer_name || 'Anonymous'}</div>
+                        <div style="font-size: 12px; color: #666;">${r.customer_email || ''}</div>
+                    </td>
+                    <td>${r.items ? r.items.length : 0} items</td>
+                    <td><span style="font-size: 13px;">${r.reason_code ? r.reason_code.replace(/_/g, ' ') : 'N/A'}</span></td>
+                    <td>${riskBadge(r.risk_score || 0)}</td>
+                    <td id="status-${r.id}">${statusBadge(r.status)}</td>
+                    <td style="color: #666; font-size: 13px;">${new Date(r.created_at).toLocaleDateString()}</td>
+                    <td>
+                        <div style="display: flex; gap: 4px;">
+                            ${r.status === 'pending' ? `
+                                <button class="btn btn-primary" onclick="processReturn('${r.id}', 'approve')" style="padding: 4px 8px; font-size: 12px; background: #008060;">Approve</button>
+                                <button class="btn btn-secondary" onclick="processReturn('${r.id}', 'reject')" style="padding: 4px 8px; font-size: 12px; color: #d72c0d;">Reject</button>
+                            ` : `
+                                <button class="btn btn-secondary" disabled style="padding: 4px 8px; font-size: 12px; opacity: 0.5;">Processed</button>
+                            `}
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+
+        } catch (err) {
+            console.error('Returns list error:', err);
+            tbody.innerHTML = `
+                <tr><td colspan="8" class="empty-state" style="color: #d72c0d;">Error loading returns: ${err.message}</td></tr>
+            `;
+        }
+    }
+
+    async function processReturn(id, action) {
+        const btnContainer = document.querySelector(`#return-row-${id} td:last-child div`);
+        const originalHtml = btnContainer.innerHTML;
+        btnContainer.innerHTML = '<span style="font-size: 12px; color: #666;">Processing...</span>';
+
+        try {
+            const result = await apiCall(`/returns/${id}/${action}`, { method: 'POST' });
+
+            // Show toast or simplified alert
+            shopify.toast.show(`Return ${action}ed`);
+
+            // Update status badge
+            document.getElementById(`status-${id}`).innerHTML = statusBadge(result.status);
+
+            // Clear buttons
+            btnContainer.innerHTML = '<span style="font-size: 12px; color: #666; font-weight: 600;">Success</span>';
+            setTimeout(() => {
+                btnContainer.innerHTML = '<button class="btn btn-secondary" disabled style="padding: 4px 8px; font-size: 12px; opacity: 0.5;">Processed</button>';
+            }, 1000);
+
+        } catch (err) {
+            console.error(`Error ${action}ing return:`, err);
+            shopify.toast.show(`Error: ${err.message}`, { isError: true });
+            btnContainer.innerHTML = originalHtml;
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', loadReturns);
+</script>
+{% endblock %}

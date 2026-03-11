@@ -1,0 +1,186 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Dashboard</h1>
+    <p>Your returns overview at a glance</p>
+</div>
+
+<!-- Key Metrics -->
+<div class="metrics-grid" id="metrics-grid">
+    <div class="metric-card">
+        <div class="metric-value" id="total-returns">-</div>
+        <div class="metric-label">Total Returns</div>
+    </div>
+    <div class="metric-card">
+        <div class="metric-value" id="pending-returns">-</div>
+        <div class="metric-label">Pending Returns</div>
+    </div>
+    <div class="metric-card">
+        <div class="metric-value" id="exchange-rate">-</div>
+        <div class="metric-label">Exchange Rate</div>
+        <div class="metric-trend positive" id="exchange-trend"></div>
+    </div>
+    <div class="metric-card">
+        <div class="metric-value" id="revenue-saved">-</div>
+        <div class="metric-label">Revenue Saved</div>
+        <div class="metric-trend positive">via exchanges</div>
+    </div>
+    <div class="metric-card">
+        <div class="metric-value" id="avg-risk">-</div>
+        <div class="metric-label">Avg Risk Score</div>
+    </div>
+    <div class="metric-card">
+        <div class="metric-value" id="high-risk">-</div>
+        <div class="metric-label">High Risk Orders</div>
+        <div class="metric-trend negative">score > 70%</div>
+    </div>
+</div>
+
+<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 24px; margin-bottom: 24px;">
+    <!-- Trends Chart -->
+    <div class="card">
+        <div class="card-header">
+            <h2>Return Trends (Last 30 Days)</h2>
+        </div>
+        <canvas id="trendsChart" width="400" height="200"></canvas>
+    </div>
+
+    <!-- Reason Breakdown -->
+    <div class="card">
+        <div class="card-header">
+            <h2>Top Reasons</h2>
+        </div>
+        <canvas id="reasonsChart" width="200" height="200"></canvas>
+    </div>
+</div>
+
+<!-- Recent Returns -->
+<div class="card">
+    <div class="card-header">
+        <h2>Recent Returns</h2>
+        <a href="/returns" class="btn btn-secondary">View All</a>
+    </div>
+    <table class="data-table" id="recent-returns-table">
+        <thead>
+            <tr>
+                <th>Order</th>
+                <th>Customer</th>
+                <th>Reason</th>
+                <th>Status</th>
+                <th>Created</th>
+            </tr>
+        </thead>
+        <tbody id="recent-returns-body">
+            <tr>
+                <td colspan="5" class="empty-state">
+                    <h3>No returns yet</h3>
+                    <p>Returns will appear here once customers submit them.</p>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', async () => {
+        try {
+            // 1. Load overview metrics
+            const overview = await apiCall('/analytics/overview');
+            document.getElementById('total-returns').textContent = overview.total_returns;
+            document.getElementById('pending-returns').textContent = overview.pending_returns;
+            document.getElementById('exchange-rate').textContent = overview.exchange_rate + '%';
+            document.getElementById('revenue-saved').textContent = formatCurrency(overview.revenue_saved_by_exchanges);
+            document.getElementById('avg-risk').textContent = (overview.avg_risk_score * 100).toFixed(1) + '%';
+            document.getElementById('high-risk').textContent = overview.high_risk_orders;
+
+            // 2. Load recent returns
+            const returnsData = await apiCall('/returns?page_size=5');
+            const tbody = document.getElementById('recent-returns-body');
+
+            if (returnsData.returns && returnsData.returns.length > 0) {
+                tbody.innerHTML = returnsData.returns.map(r => `
+                    <tr>
+                        <td><strong>${r.shopify_order_name || '#' + r.shopify_order_id}</strong></td>
+                        <td>${r.customer_name || r.customer_email || 'N/A'}</td>
+                        <td>${r.reason_code ? r.reason_code.replace('_', ' ') : 'N/A'}</td>
+                        <td>${statusBadge(r.status)}</td>
+                        <td>${new Date(r.created_at).toLocaleDateString()}</td>
+                    </tr>
+                `).join('');
+            }
+
+            // 3. Load trends chart
+            const trendsData = await apiCall('/analytics/trends');
+            const trendsCtx = document.getElementById('trendsChart').getContext('2d');
+
+            new Chart(trendsCtx, {
+                type: 'line',
+                data: {
+                    labels: trendsData.trends.map(t => t.date),
+                    datasets: [{
+                        label: 'Returns',
+                        data: trendsData.trends.map(t => t.count),
+                        borderColor: '#202123',
+                        backgroundColor: 'rgba(32, 33, 35, 0.05)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, ticks: { stepSize: 1 } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+
+            // 4. Load reasons breakdown chart
+            const reasonsData = await apiCall('/analytics/reasons');
+            const reasonsCtx = document.getElementById('reasonsChart').getContext('2d');
+
+            if (reasonsData.reasons.length > 0) {
+                new Chart(reasonsCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: reasonsData.reasons.map(r => r.reason.replace('_', ' ')),
+                        datasets: [{
+                            data: reasonsData.reasons.map(r => r.count),
+                            backgroundColor: ['#202123', '#5c5f62', '#8c9196', '#c9cccf', '#ebebeb'],
+                            borderWidth: 0
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: { boxWidth: 12, padding: 15, font: { size: 11 } }
+                            }
+                        },
+                        cutout: '70%'
+                    }
+                });
+            } else {
+                // If no reasons, show a blank chart
+                new Chart(reasonsCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['No data'],
+                        datasets: [{ data: [1], backgroundColor: ['#f1f1f1'], borderWidth: 0 }]
+                    },
+                    options: { plugins: { legend: { display: false } }, cutout: '70%' }
+                });
+            }
+
+        } catch (err) {
+            console.error('Dashboard load error:', err);
+        }
+    });
+</script>
+{% endblock %}

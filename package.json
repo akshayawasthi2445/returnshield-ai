@@ -1,0 +1,10 @@
+{
+    "name": "returnshield-ai",
+    "version": "1.0.0",
+    "private": true,
+    "description": "AI-Powered Returns & Exchange Autopilot for Shopify",
+    "dependencies": {},
+    "devDependencies": {
+        "@shopify/cli": "^3.0.0"
+    }
+}

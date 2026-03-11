@@ -1,0 +1,367 @@
+{% extends "portal/portal_base.html" %}
+
+{% block title %}Return Submitted Successfully - ReturnShield AI{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Success Header & Icon */
+    .success-icon-container {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 1.5rem;
+    }
+
+    .success-icon {
+        width: 80px;
+        height: 80px;
+        background: #ecfdf5;
+        color: #10b981;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 40px;
+        box-shadow: 0 0 0 10px #f0fdf4;
+        animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+        0% {
+            transform: scale(1);
+            box-shadow: 0 0 0 0px rgba(16, 185, 129, 0.4);
+        }
+
+        70% {
+            transform: scale(1.05);
+            box-shadow: 0 0 0 20px rgba(16, 185, 129, 0);
+        }
+
+        100% {
+            transform: scale(1);
+            box-shadow: 0 0 0 0px rgba(16, 185, 129, 0);
+        }
+    }
+
+    .success-title {
+        text-align: center;
+        margin-bottom: 0.5rem;
+        color: var(--text-main);
+        font-size: 2rem;
+    }
+
+    .success-subtitle {
+        text-align: center;
+        color: var(--text-muted);
+        margin-bottom: 2.5rem;
+    }
+
+    /* Progress Tracker */
+    .progress-tracker {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 3rem;
+        position: relative;
+        padding: 0 10px;
+    }
+
+    .progress-tracker::before {
+        content: '';
+        position: absolute;
+        top: 15px;
+        left: 40px;
+        right: 40px;
+        height: 2px;
+        background: #e2e8f0;
+        z-index: 1;
+    }
+
+    .progress-step {
+        position: relative;
+        z-index: 2;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        flex: 1;
+    }
+
+    .step-dot {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: white;
+        border: 2px solid #e2e8f0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        font-weight: 700;
+        color: #94a3b8;
+        margin-bottom: 8px;
+        transition: all 0.3s ease;
+    }
+
+    .progress-step.active .step-dot {
+        background: var(--primary);
+        border-color: var(--primary);
+        color: white;
+        box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.2);
+    }
+
+    .progress-step.completed .step-dot {
+        background: #10b981;
+        border-color: #10b981;
+        color: white;
+    }
+
+    .step-label {
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        color: #94a3b8;
+        letter-spacing: 0.5px;
+    }
+
+    .progress-step.active .step-label {
+        color: var(--primary);
+    }
+
+    /* Info Boxes */
+    .info-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .return-id-box,
+    .ai-insight-box {
+        background: #f8fafc;
+        border-radius: 16px;
+        padding: 1.25rem;
+        border: 1px solid var(--border);
+    }
+
+    .ai-insight-box {
+        background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+        border-color: #bae6fd;
+    }
+
+    .box-label {
+        font-size: 11px;
+        text-transform: uppercase;
+        font-weight: 600;
+        color: #64748b;
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .box-value {
+        font-weight: 700;
+        font-family: 'Outfit', sans-serif;
+        color: var(--text-main);
+    }
+
+    /* Items List */
+    .section-title {
+        font-size: 1rem;
+        margin-bottom: 1rem;
+        color: var(--text-main);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .items-list {
+        list-style: none;
+        margin-bottom: 2rem;
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        overflow: hidden;
+    }
+
+    .item-row {
+        display: flex;
+        align-items: center;
+        padding: 1rem;
+        background: white;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .item-row:last-child {
+        border-bottom: none;
+    }
+
+    .item-img {
+        width: 48px;
+        height: 60px;
+        background: #f1f5f9;
+        border-radius: 8px;
+        margin-right: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+    }
+
+    .item-info {
+        flex: 1;
+    }
+
+    .item-info h4 {
+        font-size: 0.9375rem;
+        font-weight: 600;
+        margin-bottom: 2px;
+    }
+
+    .item-details {
+        font-size: 0.8125rem;
+        color: var(--text-muted);
+    }
+
+    .item-qty {
+        font-weight: 700;
+        color: var(--text-main);
+        padding-left: 1rem;
+    }
+
+    /* Actions */
+    .actions {
+        margin-top: 2rem;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+    }
+
+    .btn-portal {
+        padding: 0.875rem;
+        border-radius: 12px;
+        font-weight: 600;
+        text-decoration: none;
+        text-align: center;
+        font-size: 0.9375rem;
+        transition: all 0.2s ease;
+    }
+
+    .btn-portal-primary {
+        background: var(--primary);
+        color: white;
+    }
+
+    .btn-portal-secondary {
+        background: white;
+        color: var(--text-main);
+        border: 1px solid var(--border);
+    }
+
+    .btn-portal:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow);
+    }
+
+    /* Print Styles */
+    @media print {
+
+        .portal-header,
+        .actions,
+        .success-icon-container {
+            display: none;
+        }
+
+        .glass-card {
+            box-shadow: none;
+            border: none;
+            padding: 0;
+        }
+
+        body {
+            background: white;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="success-icon-container">
+    <div class="success-icon">✓</div>
+</div>
+
+<h1 class="success-title">Return Submitted!</h1>
+<p class="success-subtitle">We've received your request. Safe and secure with ReturnShield AI.</p>
+
+<!-- Progress Tracker -->
+<div class="progress-tracker">
+    <div class="progress-step completed">
+        <div class="step-dot">✓</div>
+        <div class="step-label">Submitted</div>
+    </div>
+    <div class="progress-step active">
+        <div class="step-dot">2</div>
+        <div class="step-label">Reviewing</div>
+    </div>
+    <div class="progress-step">
+        <div class="step-dot">3</div>
+        <div class="step-label">Shipping</div>
+    </div>
+    <div class="progress-step">
+        <div class="step-dot">4</div>
+        <div class="step-label">Completed</div>
+    </div>
+</div>
+
+<div class="info-grid">
+    <div class="return-id-box">
+        <div class="box-label">Request ID</div>
+        <div class="box-value">#{{ return_request.id | string | upper | truncate(8, True, '') }}</div>
+    </div>
+    <div class="ai-insight-box">
+        <div class="box-label">✨ AI Fit Suggestion</div>
+        <div class="box-value" style="font-size: 13px; font-weight: 500;">
+            Based on your feedback, we'll suggest a better size for your next order.
+        </div>
+    </div>
+</div>
+
+<h3 class="section-title">📦 Items in this return</h3>
+<ul class="items-list">
+    {% for item in return_request.items %}
+    <li class="item-row">
+        <div class="item-img">👕</div>
+        <div class="item-info">
+            <h4>{{ item.product_title }}</h4>
+            <div class="item-details">
+                {{ item.variant_title or 'Standard' }} • Reason: {{ item.reason or 'Not Specified' }}
+            </div>
+        </div>
+        <div class="item-qty">x{{ item.quantity }}</div>
+    </li>
+    {% endfor %}
+</ul>
+
+<div style="background: #fdf2f2; border-radius: 12px; padding: 1rem; border: 1px solid #fee2e2; margin-bottom: 2rem;">
+    <div style="display: flex; gap: 10px; align-items: flex-start;">
+        <span style="font-size: 18px;">📧</span>
+        <div>
+            <div style="font-weight: 600; font-size: 14px; color: #991b1b;">Next Step: Verification</div>
+            <p style="font-size: 13px; color: #b91c1c; margin-top: 2px;">
+                Check <strong>{{ return_request.customer_email }}</strong> for a confirmation email and your next steps.
+            </p>
+        </div>
+    </div>
+</div>
+
+<div class="actions">
+    <a href="javascript:window.print()" class="btn-portal btn-portal-secondary">🖨️ Print Summary</a>
+    <a href="https://{{ shop_domain }}" class="btn-portal btn-portal-primary">Back to Home</a>
+</div>
+
+<div
+    style="margin-top: 2rem; text-align: center; font-size: 11px; color: #94a3b8; display: flex; align-items: center; justify-content: center; gap: 4px;">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+        <path
+            d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z" />
+    </svg>
+    PROTECTED BY RETURNSHIELD AI • ENCRYPTED DATA
+</div>
+{% endblock %}
