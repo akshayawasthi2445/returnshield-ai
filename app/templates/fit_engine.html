@@ -3,92 +3,167 @@
 {% block title %}Fit Engine - ReturnShield AI{% endblock %}
 
 {% block content %}
-<div class="p-6">
-    <div class="flex justify-between items-center mb-6">
+<div class="page-header">
+    <div style="display: flex; justify-content: space-between; align-items: flex-end;">
         <div>
-            <h1 class="text-2xl font-bold text-slate-900">🛡️ Fit Engine</h1>
-            <p class="text-slate-600">Analyze return patterns and optimize your size guides with AI.</p>
+            <h1>🛡️ Fit Engine</h1>
+            <p>AI-driven sizing optimization and return prevention analytics.</p>
         </div>
-        <button class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+        <button class="btn btn-primary" onclick="runAnalysis()">
+            <svg style="width: 16px; height: 16px; margin-right: 8px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
             Run Full Analysis
         </button>
     </div>
+</div>
 
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-            <h3 class="text-slate-500 text-sm font-medium uppercase mb-1">Return Prevention Rate</h3>
-            <div class="text-3xl font-bold text-slate-900">12.4%</div>
-            <p class="text-green-600 text-sm mt-2">↑ 2.1% from last month</p>
-        </div>
-        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-            <h3 class="text-slate-500 text-sm font-medium uppercase mb-1">Exchange Conversion</h3>
-            <div class="text-3xl font-bold text-slate-900">42.8%</div>
-            <p class="text-indigo-600 text-sm mt-2">Retention high stable</p>
-        </div>
-        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-            <h3 class="text-slate-500 text-sm font-medium uppercase mb-1">AI Recommendation Confidence</h3>
-            <div class="text-3xl font-bold text-slate-900">89.2%</div>
-            <div class="w-full bg-slate-100 h-2 rounded-full mt-3">
-                <div class="bg-indigo-600 h-2 rounded-full" style="width: 89%"></div>
-            </div>
+<!-- Key Performance Metrics -->
+<div class="metrics-grid">
+    <div class="metric-card">
+        <div class="metric-value">12.4%</div>
+        <div class="metric-label">Return Prevention Rate</div>
+        <div class="metric-trend positive">↑ 2.1% improvement</div>
+    </div>
+    <div class="metric-card">
+        <div class="metric-value">42.8%</div>
+        <div class="metric-label">Exchange Conversion</div>
+        <div class="metric-trend" style="color: #666;">Stable momentum</div>
+    </div>
+    <div class="metric-card">
+        <div class="metric-value" style="color: #008060;">89.2%</div>
+        <div class="metric-label">AI Confidence Level</div>
+        <div style="width: 100%; height: 6px; background: #eee; border-radius: 3px; margin-top: 12px; overflow: hidden;">
+            <div style="width: 89.2%; height: 100%; background: #008060; border-radius: 3px;"></div>
         </div>
     </div>
+</div>
 
-    <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-        <div class="p-6 border-b border-slate-200">
-            <h2 class="text-lg font-bold text-slate-900">High-Risk Products (Sizing)</h2>
+<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 24px;">
+    <!-- Main High-Risk Analysis -->
+    <div class="card">
+        <div class="card-header">
+            <h2>High-Risk Products (Sizing Issues)</h2>
+            <div style="font-size: 13px; color: #666;">Sorted by potential revenue impact</div>
         </div>
-        <table class="w-full text-left">
-            <thead class="bg-slate-50 text-slate-600 text-sm">
+        
+        <table class="data-table">
+            <thead>
                 <tr>
-                    <th class="px-6 py-4 font-semibold">Product</th>
-                    <th class="px-6 py-4 font-semibold">Return Rate</th>
-                    <th class="px-6 py-4 font-semibold">Primary Reason</th>
-                    <th class="px-6 py-4 font-semibold">AI Insight</th>
-                    <th class="px-6 py-4 font-semibold">Action</th>
+                    <th>Product Details</th>
+                    <th>Return Rate</th>
+                    <th>Primary Reason</th>
+                    <th>AI Recommendation</th>
+                    <th>Action</th>
                 </tr>
             </thead>
-            <tbody class="divide-y divide-slate-200">
+            <tbody>
                 <tr>
-                    <td class="px-6 py-4">
-                        <div class="font-medium text-slate-900">Premium Leather Jacket</div>
-                        <div class="text-xs text-slate-500">Outerwear · 4 Variants</div>
+                    <td>
+                        <div style="font-weight: 600;">Premium Leather Jacket</div>
+                        <div style="font-size: 12px; color: #888;">Outerwear · 4 Variants</div>
                     </td>
-                    <td class="px-6 py-4">
-                        <span class="text-red-600 font-semibold">18.5%</span>
-                    </td>
-                    <td class="px-6 py-4 text-slate-600">"Too Small" (72%)</td>
-                    <td class="px-6 py-4">
-                        <span
-                            class="bg-indigo-50 text-indigo-700 text-xs px-2 py-1 rounded-full border border-indigo-100">
-                            Suggest Size Up
-                        </span>
-                    </td>
-                    <td class="px-6 py-4">
-                        <button class="text-indigo-600 hover:text-indigo-800 text-sm font-medium">Auto-Adjust</button>
-                    </td>
+                    <td><span style="color: #d72c0d; font-weight: 600;">18.5%</span></td>
+                    <td style="color: #666;">"Too Small" (72%)</td>
+                    <td><span class="badge badge-high-risk">Suggest Size Up</span></td>
+                    <td><button class="btn btn-secondary" style="padding: 4px 12px;">Optimize</button></td>
                 </tr>
                 <tr>
-                    <td class="px-6 py-4">
-                        <div class="font-medium text-slate-900">Summer Linen Trousers</div>
-                        <div class="text-xs text-slate-500">Pants · 6 Variants</div>
+                    <td>
+                        <div style="font-weight: 600;">Summer Linen Trousers</div>
+                        <div style="font-size: 12px; color: #888;">Pants · 6 Variants</div>
                     </td>
-                    <td class="px-6 py-4">
-                        <span class="text-amber-600 font-semibold">11.2%</span>
+                    <td><span style="color: #ff9900; font-weight: 600;">11.2%</span></td>
+                    <td style="color: #666;">"Too Large" (58%)</td>
+                    <td><span class="badge badge-medium-risk">Suggest Size Down</span></td>
+                    <td><button class="btn btn-secondary" style="padding: 4px 12px;">Optimize</button></td>
+                </tr>
+                <tr>
+                    <td>
+                        <div style="font-weight: 600;">Silk Evening Blouse</div>
+                        <div style="font-size: 12px; color: #888;">Tops · 3 Variants</div>
                     </td>
-                    <td class="px-6 py-4 text-slate-600">"Too Large" (58%)</td>
-                    <td class="px-6 py-4">
-                        <span
-                            class="bg-indigo-50 text-indigo-700 text-xs px-2 py-1 rounded-full border border-indigo-100">
-                            Suggest Size Down
-                        </span>
-                    </td>
-                    <td class="px-6 py-4">
-                        <button class="text-indigo-600 hover:text-indigo-800 text-sm font-medium">Auto-Adjust</button>
-                    </td>
+                    <td><span style="color: #008060; font-weight: 600;">4.1%</span></td>
+                    <td style="color: #666;">"Material" (12%)</td>
+                    <td><span class="badge badge-low-risk">Optimal Fit</span></td>
+                    <td><button class="btn btn-secondary" style="padding: 4px 12px;">Monitor</button></td>
                 </tr>
             </tbody>
         </table>
     </div>
+
+    <!-- AI Distribution Insights -->
+    <div class="card">
+        <div class="card-header">
+            <h2>Size Distribution</h2>
+        </div>
+        <div style="padding: 10px 0;">
+            <canvas id="fitDistributionChart" height="250"></canvas>
+        </div>
+        <div style="margin-top: 20px; padding: 16px; background: rgba(0,128,96,0.05); border-radius: 8px; border: 1px solid rgba(0,128,96,0.1);">
+            <div style="display: flex; gap: 12px;">
+                <div style="font-size: 20px;">💡</div>
+                <div>
+                    <div style="font-weight: 600; font-size: 13px; color: #008060;">Fit Engine Insight</div>
+                    <p style="font-size: 12px; color: #555; margin-top: 4px;">Large sizes are returning 3x more often than Small/Medium. We recommend updating the "Large" measurements specifically.</p>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    function runAnalysis() {
+        shopify.toast.show("Analyzing return patterns...");
+        setTimeout(() => {
+            shopify.toast.show("Fit models updated successfully.");
+        }, 2000);
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const ctx = document.getElementById('fitDistributionChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Fit Perfect', 'Too Small', 'Too Large'],
+                datasets: [{
+                    data: [65, 25, 10],
+                    backgroundColor: ['#008060', '#d72c0d', '#ffd79d'],
+                    borderWidth: 0,
+                    hoverOffset: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            usePointStyle: true,
+                            padding: 20,
+                            font: { size: 12 }
+                        }
+                    }
+                },
+                cutout: '70%'
+            }
+        });
+    });
+</script>
+<style>
+    /* Unique animations for this page */
+    @keyframes pulse-soft {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.02); }
+        100% { transform: scale(1); }
+    }
+    .badge-high-risk {
+        animation: pulse-soft 2s infinite ease-in-out;
+    }
+</style>
 {% endblock %}

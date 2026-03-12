@@ -8,7 +8,10 @@ and middleware for the Shopify embedded app.
 import logging
 from contextlib import asynccontextmanager
 
-import sentry_sdk
+try:
+    import sentry_sdk
+except ImportError:
+    sentry_sdk = None
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
@@ -28,7 +31,7 @@ logger = logging.getLogger(__name__)
 
 
 # --- Sentry (optional) ---
-if settings.SENTRY_DSN:
+if sentry_sdk and settings.SENTRY_DSN:
     sentry_sdk.init(
         dsn=settings.SENTRY_DSN,
         traces_sample_rate=0.1,

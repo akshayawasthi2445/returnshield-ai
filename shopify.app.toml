@@ -1,6 +1,6 @@
 # Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
 
-client_id = "a7eb273d4941f40fe147c66be9fed5cd"
+client_id = "fee604684d0ea0948dffaf982f5879f1"
 name = "ReturnShield AI"
 application_url = "https://example.com"
 embedded = true

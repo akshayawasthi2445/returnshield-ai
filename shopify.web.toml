@@ -4,4 +4,4 @@ roles = ["frontend", "backend"]
 webhooks_path = "/api/v1/webhooks"
 
 [commands]
-dev = ".venv/bin/uvicorn app.main:app --reload --port 8000"
+dev = "./start_server.sh"
