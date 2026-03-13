@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+
+{% block title %}Diagnostics - ReturnShield AI{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>🛠️ Pre-Flight Diagnostics</h1>
+    <p>Verify system health and simulate store events before production deployment.</p>
+</div>
+
+<div class="metrics-grid">
+    <div class="metric-card" id="health-db">
+        <div class="metric-value">...</div>
+        <div class="metric-label">Database Status</div>
+        <div class="metric-trend" id="health-db-trend">Checking...</div>
+    </div>
+    <div class="metric-card" id="health-redis">
+        <div class="metric-value">...</div>
+        <div class="metric-label">Redis/Broker Status</div>
+        <div class="metric-trend" id="health-redis-trend">Checking...</div>
+    </div>
+    <div class="metric-card" id="health-celery">
+        <div class="metric-value">...</div>
+        <div class="metric-label">Celery Workers</div>
+        <div class="metric-trend" id="health-celery-trend">Checking...</div>
+    </div>
+</div>
+
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+    <!-- Webhook Simulation -->
+    <div class="card">
+        <div class="card-header">
+            <h2>Webhook Simulator</h2>
+        </div>
+        <p style="font-size: 14px; color: #666; margin-bottom: 20px;">
+            Manually trigger Shopify webhook events to verify background processing logic.
+        </p>
+        
+        <div style="margin-bottom: 16px;">
+            <label style="display: block; font-weight: 600; font-size: 13px; margin-bottom: 8px;">Event Topic</label>
+            <select id="sim-topic" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-family: inherit;">
+                <option value="orders/create">orders/create (Risk Prediction)</option>
+            </select>
+        </div>
+
+        <div style="margin-bottom: 20px;">
+            <label style="display: block; font-weight: 600; font-size: 13px; margin-bottom: 8px;">Mock Payload (JSON)</label>
+            <textarea id="sim-payload" style="width: 100%; height: 150px; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-family: monospace; font-size: 12px;">
+{
+  "id": 12345678,
+  "email": "customer@example.com",
+  "total_price": "150.00",
+  "line_items": [
+    {
+      "title": "Premium Leather Jacket",
+      "quantity": 1,
+      "price": "150.00"
+    }
+  ],
+  "customer": {
+    "orders_count": 5
+  }
+}
+            </textarea>
+        </div>
+
+        <button class="btn btn-primary" style="width: 100%; justify-content: center;" onclick="runSimulation()">
+            🚀 Fire Mock Webhook
+        </button>
+    </div>
+
+    <!-- Recent Logs/Events -->
+    <div class="card">
+        <div class="card-header">
+            <h2>System Events</h2>
+        </div>
+        <div id="event-log" style="height: 380px; overflow-y: auto; background: #fafafa; border: 1px solid #eee; border-radius: 8px; padding: 12px; font-family: monospace; font-size: 12px;">
+            <div style="color: #999;">Waiting for diagnostics data...</div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    async function checkHealth() {
+        try {
+            const data = await apiCall('/diagnostics/health');
+            
+            updateMetric('health-db', data.database);
+            updateMetric('health-redis', data.redis);
+            updateMetric('health-celery', data.celery);
+            
+            addLog(`Health Check: DB=${data.database}, Redis=${data.redis}, Celery=${data.celery}`);
+        } catch (err) {
+            console.error(err);
+            addLog(`Health check failed: ${err.message}`, 'error');
+        }
+    }
+
+    function updateMetric(id, status) {
+        const el = document.getElementById(id);
+        const valueEl = el.querySelector('.metric-value');
+        const trendEl = el.querySelector('.metric-trend');
+        
+        valueEl.innerText = status === 'connected' || status.includes('active') ? 'OK' : 'FAIL';
+        valueEl.style.color = status === 'connected' || status.includes('active') ? '#008060' : '#d72c0d';
+        
+        trendEl.innerText = status;
+        trendEl.style.color = status === 'connected' || status.includes('active') ? '#008060' : '#d72c0d';
+    }
+
+    async function runSimulation() {
+        const topic = document.getElementById('sim-topic').value;
+        const payloadStr = document.getElementById('sim-payload').value;
+        
+        try {
+            const payload = JSON.parse(payloadStr);
+            addLog(`Simulating topic: ${topic}...`);
+            
+            const result = await apiCall('/diagnostics/simulate-webhook?topic=' + encodeURIComponent(topic), {
+                method: 'POST',
+                body: JSON.stringify(payload)
+            });
+            
+            shopify.toast.show("Webhook Simulation Fired!");
+            addLog(`Success: ${JSON.stringify(result)}`);
+        } catch (err) {
+            shopify.toast.show("Simulation Failed: " + err.message);
+            addLog(`Simulation Error: ${err.message}`, 'error');
+        }
+    }
+
+    function addLog(msg, type = 'info') {
+        const log = document.getElementById('event-log');
+        const entry = document.createElement('div');
+        entry.style.marginBottom = '6px';
+        entry.style.color = type === 'error' ? '#d72c0d' : '#333';
+        
+        const time = new Date().toLocaleTimeString();
+        entry.innerText = `[${time}] ${msg}`;
+        
+        if (log.querySelector('div[style*="color: #999"]')) {
+            log.innerHTML = '';
+        }
+        
+        log.prepend(entry);
+    }
+
+    // Run health check every 10 seconds
+    document.addEventListener('DOMContentLoaded', () => {
+        checkHealth();
+        setInterval(checkHealth, 10000);
+        addLog("Diagnostics session started.");
+    });
+</script>
+{% endblock %}

@@ -1,95 +1,66 @@
-"""
-ReturnShield AI — FastAPI Application Entrypoint
-
-Main application that wires together all routes, templates,
-and middleware for the Shopify embedded app.
-"""
-
 import logging
+import os
 from contextlib import asynccontextmanager
 
-try:
-    import sentry_sdk
-except ImportError:
-    sentry_sdk = None
+import sentry_sdk
 from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 from app.api.router import router as api_router
-from app.auth.oauth import router as auth_router
-from app.portal_views import router as portal_views_router
 from app.config import settings
+from app.database import engine, Base
 
-# --- Logging ---
-logging.basicConfig(
-    level=logging.DEBUG if settings.DEBUG else logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
-)
+# Set up logging
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# Initialize Sentry (Optional)
+if os.getenv("SENTRY_DSN"):
+    try:
+        import sentry_sdk
+        sentry_sdk.init(
+            dsn=os.getenv("SENTRY_DSN"),
+            traces_sample_rate=1.0,
+        )
+    except ImportError:
+        logger.warning("sentry-sdk not installed, skipping Sentry initialization.")
 
-# --- Sentry (optional) ---
-if sentry_sdk and settings.SENTRY_DSN:
-    sentry_sdk.init(
-        dsn=settings.SENTRY_DSN,
-        traces_sample_rate=0.1,
-        environment=settings.APP_ENV,
-    )
-
-
-# --- Lifespan ---
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Application startup and shutdown events."""
-    logger.info(f"🛡️  {settings.APP_NAME} starting up...")
-    logger.info(f"   Environment: {settings.APP_ENV}")
-    logger.info(f"   App URL: {settings.APP_URL}")
+    # Create tables on startup (Internal dev use only)
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
     yield
-    logger.info(f"🛡️  {settings.APP_NAME} shutting down...")
 
-
-# --- App ---
 app = FastAPI(
-    title=settings.APP_NAME,
-    description="AI-Powered Returns & Exchange Autopilot for Shopify",
-    version="0.1.0",
-    lifespan=lifespan,
-    docs_url="/docs" if settings.DEBUG else None,
-    redoc_url="/redoc" if settings.DEBUG else None,
+    title="ReturnShield AI",
+    description="AI-powered return prevention and exchanges for Shopify",
+    version="1.0.0",
+    lifespan=lifespan
 )
 
-# Mount static files
-app.mount("/static", StaticFiles(directory="app/static"), name="static")
+# CORS configuration
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
-# Templates
+# Static files and templates
+app.mount("/static", StaticFiles(directory="app/static"), name="static")
 templates = Jinja2Templates(directory="app/templates")
 
-# Include routers
-app.include_router(auth_router)
+# Include API routes
 app.include_router(api_router)
-app.include_router(portal_views_router)
-
-
-# --- Health Check ---
-@app.get("/health")
-async def health_check():
-    """Health check endpoint for monitoring."""
-    return {
-        "status": "healthy",
-        "app": settings.APP_NAME,
-        "version": "0.1.0",
-        "environment": settings.APP_ENV,
-    }
-
-
-# --- Page Routes (serve embedded app templates) ---
 
 @app.get("/", response_class=HTMLResponse)
-@app.get("/dashboard", response_class=HTMLResponse)
-async def dashboard_page(request: Request):
-    """Main dashboard page."""
+async def index(request: Request):
+    """Serve the main dashboard."""
     return templates.TemplateResponse(
         "dashboard.html",
         {
@@ -98,6 +69,10 @@ async def dashboard_page(request: Request):
         },
     )
 
+@app.get("/dashboard", response_class=HTMLResponse)
+async def dashboard_page(request: Request):
+    """Serve the main dashboard (alias)."""
+    return await index(request)
 
 @app.get("/returns", response_class=HTMLResponse)
 async def returns_page(request: Request):
@@ -110,10 +85,9 @@ async def returns_page(request: Request):
         },
     )
 
-
 @app.get("/analytics", response_class=HTMLResponse)
 async def analytics_page(request: Request):
-    """Analytics page."""
+    """Analytics and insights page."""
     return templates.TemplateResponse(
         "analytics.html",
         {
@@ -122,10 +96,9 @@ async def analytics_page(request: Request):
         },
     )
 
-
 @app.get("/fit-engine", response_class=HTMLResponse)
 async def fit_engine_page(request: Request):
-    """Fit engine configuration page."""
+    """Fit Engine optimization page."""
     return templates.TemplateResponse(
         "fit_engine.html",
         {
@@ -134,12 +107,23 @@ async def fit_engine_page(request: Request):
         },
     )
 
-
 @app.get("/settings", response_class=HTMLResponse)
 async def settings_page(request: Request):
     """Settings page."""
     return templates.TemplateResponse(
         "settings.html",
+        {
+            "request": request,
+            "shopify_api_key": settings.SHOPIFY_API_KEY,
+        },
+    )
+
+
+@app.get("/diagnostics", response_class=HTMLResponse)
+async def diagnostics_page(request: Request):
+    """Diagnostics page for pre-flight testing."""
+    return templates.TemplateResponse(
+        "diagnostics.html",
         {
             "request": request,
             "shopify_api_key": settings.SHOPIFY_API_KEY,
